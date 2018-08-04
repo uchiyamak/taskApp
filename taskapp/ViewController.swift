@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift       //Realmはアプリの内部に表形式のテーブルを保持させられる？
+import UserNotifications
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
@@ -71,8 +72,28 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     //Deleteボタンが押された時に呼ばれるメソッド
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            self.realm.delete(self.taskArray[indexPath.row])
-            tableView.deleteRows(at: [indexPath], with: .fade)  //スワイプして削除、はどの部分で記載？
+            
+            //削除されたタスクを取得する
+            let task = self.taskArray[indexPath.row]
+            
+            //ローカル通知をキャンセルする
+            let center = UNUserNotificationCenter.current()
+            center.removePendingNotificationRequests(withIdentifiers: [String(task.id)])    //[]って何？
+            
+            // データベースから削除する
+            try! realm.write {
+                self.realm.delete(task)
+                tableView.deleteRows(at: [indexPath], with: .fade)  //スワイプして削除、はどの部分で記載？
+            }
+            
+            // 未通知のローカル通知一覧をログ出力    getPendingNotificationRequestsはデフォルトでは別の引数が表示されるが？
+            center.getPendingNotificationRequests { (requests: [UNNotificationRequest]) in
+                for request in requests {
+                    print("/--------------")
+                    print(request)
+                    print("--------------/")
+                }
+            }
         }
     }
     

@@ -10,7 +10,7 @@ import UIKit        //この場所ってなんだっけ？
 import UserNotifications
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
 
     var window: UIWindow?
 
@@ -22,7 +22,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         center.requestAuthorization(options: [.alert, .sound]) { (granted, error) in    //compriationhundlerはなくて良いの？ {の後に()は初めて見る記述
             //
         }
+        center.delegate = self;     //セミコロン、何？この行はなんの役割？
+        
         return true
+    }
+    
+    //アプリがフォアグランドの時に通知を受け取ると呼ばれるメソッド
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.sound, .alert])
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
