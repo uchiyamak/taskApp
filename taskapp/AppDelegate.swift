@@ -6,7 +6,7 @@
 //  Copyright © 2018年 kazuya.uchiyama. All rights reserved.
 //
 
-import UIKit        //この場所ってなんだっけ？
+import UIKit        //この場所ってなんだっけ？アプリ全体を管理する。画面に関係ない。
 import UserNotifications
 
 @UIApplicationMain
@@ -22,7 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         center.requestAuthorization(options: [.alert, .sound]) { (granted, error) in    //compriationhundlerはなくて良いの？ {の後に()は初めて見る記述
             //
         }
-        center.delegate = self;     //セミコロン、何？この行はなんの役割？
+        center.delegate = self
         
         return true
     }

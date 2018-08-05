@@ -10,9 +10,10 @@ import UIKit
 import RealmSwift       //Realmはアプリの内部に表形式のテーブルを保持させられる？
 import UserNotifications
 
-class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
 
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var searchTextField: UISearchBar!
     
     // Realmインスタンスを取得する
     let realm = try! Realm()    //tryってなんだ？　→エラー無視らしい
@@ -27,7 +28,12 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         // Do any additional setup after loading the view, typically from a nib.
         
         tableView.delegate = self
+        searchTextField.delegate = self     //追加
         tableView.dataSource = self
+        
+        //何も入力されてなくてもリターンキーを押せるように
+        searchTextField.enablesReturnKeyAutomatically = false   //追加 必要？
+        
     }
 
     override func didReceiveMemoryWarning() {
@@ -35,22 +41,39 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         // Dispose of any resources that can be recreated.
     }
     
-    // UITableViewDataSourceプロトコルのメソッド      tableViewという同じ名前のメソッドがたくさん。混乱しないの？
+    //検索ボタンを押した時のメソッド
+    //func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+    //    <#code#>
+    //}
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) { //
+        let realm = try! Realm()
+        
+        if searchTextField.text == "" {
+            taskArray = realm.objects(Task.self).sorted(byKeyPath: "date", ascending: false)
+        } else {
+            //serchTextを含むレコードだけを抽出するコードを書きたい
+            let predicate = NSPredicate(format: "category BEGINSWITH %@", searchText)
+            taskArray = realm.objects(Task.self).filter(predicate).sorted(byKeyPath: "date", ascending: false)
+        }
+        tableView.reloadData()
+    }
+    
+    // UITableViewDataSourceプロトコルのメソッド
     //データの数を返すメソッド
     func tableView(_ tableView:UITableView, numberOfRowsInSection section: Int) -> Int {
         return taskArray.count
-    }       //メソッドの引数のスペース前後の意味はそれぞれ？
-    
+    }
+
     //各セルの内容を返すメソッド
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         //再利用可能なcellをえる
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
         let task = taskArray[indexPath.row]      //rowの現在地は？
-        cell.textLabel?.text = task.title       //textlabelどこだっけ？
+        cell.textLabel?.text = task.category + " - " + task.title       //カテゴリ名を右端に置くには？    オリジナルのCellを作れば可能
         
         let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm"   //日付のフォーマット変換に、わざわざ変数作るの？
+        formatter.dateFormat = "yyyy-MM-dd HH:mm"   //日付のフォーマット変換に、わざわざ変数作るの？ラッパー作って
         
         let dateString:String = formatter.string(from: task.date)
         cell.detailTextLabel?.text = dateString
